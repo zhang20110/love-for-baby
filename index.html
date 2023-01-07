@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1❤❤天</title>
+    <!-- icon在网络情况下,浏览器可能会直接使用缓存的icon,通过加?参数,强制请求新的icon -->
+    <link rel="icon" type="image/png" href="./static/icons/icon.png?v=1.1">
+    <!-- 工具函数 -->
+    <script src="./js/utils/index.js"></script>
+    <!-- 画爱心 -->
+    <script src="./js/loveHeart/index.js"></script>
+    <!-- 画种子 -->
+    <script src="./js/seed/index.js"></script>
+    <!-- 画树干 -->
+    <script src="./js/branches/index.js"></script>
+    <!-- 画树 -->
+    <script src="./js/tree/index.js"></script>
+    <!-- 画字 -->
+    <script src="./js/word/index.js"></script>
+    <!-- 樱花雨 -->
+    <script src="./js/sakura-rain/index.js"></script>
+</head>
+<style>
+    body,
+    html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background-color: #000;
+        overflow: hidden;
+    }
+
+    .canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+
+    #text {
+        position: absolute;
+        top: 60px;
+        left: 80px;
+        height: 100%;
+        max-width: 400px;
+        color: white;
+        padding-right: 15px;
+    }
+
+    .cursorAnimate {
+        animation: blinkText 0.75s step-end infinite;
+    }
+
+    @keyframes blinkText {
+        from {
+            color: white;
+        }
+
+        to {
+            color: white
+        }
+
+        50% {
+            color: transparent
+        }
+    }
+
+    #strong {
+        color: red;
+    }
+
+    #time-box {
+        margin-top: 30px;
+        color: white;
+        font-size: 28px;
+        width: 900px;
+    }
+
+    .clock {
+        font-size: 64px;
+    }
+
+
+    .hover {
+        cursor: pointer;
+    }
+
+    .fadeIn {
+        animation: fadeIn 1.8s ease;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    .hidden {
+        visibility: hidden;
+    }
+</style>
+
+<body>
+    <audio loop autoplayauto>
+        <source src="./static/music/1.mp3" type="audio/mp3" />
+    </audio>
+    <div id="text" class="hidden">
+        <span class="text_box"></span>
+        <span class="cursorAnimate">__</span>
+        <div id="time-box" class="hidden">
+            <font color="#33CC00">亲爱的小小，认识你</font> <span>已经是……</span>
+            <div id="time"></div>
+        </div>
+    </div>
+    <canvas id="canvas" class="canvas"></canvas>
+
+</body>
+<script>
+
+    // 检测是否pc端浏览器
+    function isMobile() {
+        let flag = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        return flag;
+    }
+    if (isMobile()) {
+        alert('请移步电脑端浏览器获取最佳体验!!');
+        throw ('不支持移动端')
+    }
+    // 设置canvas和屏幕同样宽高
+    const width = document.body.clientWidth;
+    const height = document.body.clientHeight;
+    const canvas = document.querySelector('#canvas')
+    canvas.width = width
+    canvas.height = height
+    // 动画逻辑
+    const ctx = canvas.getContext('2d');
+    // 将ctx 和 text 挂载到全局对象上
+    window.ctx = ctx;
+    const loveHeart = new DrawLoveHeart();
+    const midWidth = Math.trunc(width / 2), midHeight = Math.trunc(height / 2);
+    // 画爱心
+    loveHeart.draw(midWidth, midHeight)
+    drawText(midWidth, midHeight);
+    // 点击爱心的事件
+    const handleClick = (e) => {
+        // 点击红色区域 => 爱心
+        if (ctx.getImageData(e.pageX, e.pageY, 1, 1).data[0] === 255) {
+            canvas.removeEventListener('mousemove', handleMouseMove)
+            canvas.removeEventListener('click', handleClick)
+            canvas.classList.remove('hover')
+            // 播放音乐
+            const hasOpen = sessionStorage.getItem('hasOpen')
+            !hasOpen && alert('记得打开电脑声音哦~')
+            !hasOpen && sessionStorage.setItem('hasOpen', 'true')
+            document.querySelector('audio').play()
+            // 动画
+            runAnimated()
+        }
+    }
+    canvas.addEventListener('click', handleClick)
+    // 移动到爱心的事件
+    const handleMouseMove = (e) => {
+        const force = ctx.getImageData(e.pageX, e.pageY, 1, 1).data[0] === 255
+        canvas.classList.toggle('hover', force)
+    }
+    canvas.addEventListener('mousemove', handleMouseMove)
+    // 动画
+    async function runAnimated() {
+        const ctx = window.ctx;
+        const SURFACE = midHeight * (1 + 0.88); // 地面的位置
+        // 删除爱心动画
+        await new Promise((res, rej) => {
+            let nowSize = 2
+            const removeHeartStep = () => {
+                nowSize = nowSize * 0.95
+                ctx.save()
+                ctx.translate(midWidth, midHeight)
+                ctx.clearRect(- 50, - 50, 260, 100);
+                ctx.restore()
+                if (nowSize <= 0.2) {
+                    return true;
+                } else {
+                    loveHeart.draw(midWidth, midHeight, 'red', nowSize);
+                }
+                return false;
+            }
+            const timeId = setInterval(() => {
+                const isEnd = removeHeartStep();
+                drawSeed(midWidth, midHeight)
+                if (isEnd) {
+                    clearInterval(timeId)
+                    res()
+                }
+            }, 16)
+        })
+        // 种子下落动画
+        await new Promise((res, rej) => {
+            let nowX = midWidth, nowY = midHeight;
+            const timeId = setInterval(() => {
+                nowY += 2;
+                ctx.save()
+                ctx.clearRect(nowX - 20, nowY - 20, 40, 40)
+                ctx.restore()
+                if (nowY >= SURFACE) {
+                    clearInterval(timeId)
+                    res()
+                    return;
+                }
+                drawSeed(nowX, nowY)
+            }, 16)
+        })
+        // 树的动画
+        const tree = new Tree({ x: midWidth, y: SURFACE })
+        await tree.drawTree()
+        await tree.horizontalMoveTree(width - 680, 2, midWidth - 300, 0)
+        // typewriter 动画
+        await new Promise((res, rej) => {
+            let text =
+                `我仍然记得我们初次相识时内心的澎湃，恨不得立刻见面的激动，我也记得你给我写的信，你说恨不得每天和我讲话，每天都陪你，我记得当时收到信的开心，现在重新读时更开心，我喜欢你，更喜欢你喜欢我.
+    今天我们到100天啦。100天短不短，相见恨晚算不算晚. 我希望我们以后像一百这个数字一个, 凑个整,完完整整. 我希望岁岁年年月月，永永远远。
+    我记得你以前问我，你是不是唯一，也许当我们结婚的时候你会是那唯一。现在你是我很重要很重要的人，前世修行一千年，得来今世的遇见。怎能不珍惜呢。地球上有那么多人，遇见你真的不容易，真的是幸运
+    我还记得你问过我几次我喜欢你什么,我以前可以说很多，现在已经不会说什么了.因为你已经成为了我的本能，喜欢你已经不需要理由了，想到你就会笑，你生气我就会难受，这已经是我情感的本能了
+    时间越来越近了，现在我最盼望的就是有一天我可以真正的唤你做女朋友，宝贝～`
+            const textEle = document.querySelector('#text');
+            const textBoxEle = document.querySelector('.text_box');
+            textEle.classList.remove('hidden');
+            text = text.split('\n');
+            let row = 0, col = 0;
+            let j = 0;
+            let delay = 0
+            const redStart = 53; // 红色字体开始的位置
+            const timeId = setInterval(() => {
+                if (delay-- > 0) {
+                    return;
+                }
+                if (j < 2 && col === 0 && row != 0) {
+                    textBoxEle.innerHTML += '<br/>';
+                    ++j;
+                    delay = 15; // 分段的时候停顿10次
+                } else {
+                    if (row === 3 && col === redStart) {
+                        textBoxEle.innerHTML += ' <strong id="strong"></strong>'
+                        ++col;
+                    } else if (row === 3 && col > redStart) {
+                        document.querySelector('#strong').innerHTML += text[row][col++]
+                    } else {
+                        textBoxEle.innerHTML += text[row][col++];
+                    }
+                    j = 0
+                }
+                if (col === text[row].length) {
+                    ++row;
+                    col = 0;
+                }
+                if (row === text.length) {
+                    clearInterval(timeId);
+                    res()
+                }
+            }, 40)
+        })
+        // 日期出现动画
+        const classList = document.querySelector('#time-box').classList
+        classList.remove('hidden')
+        classList.add('fadeIn')
+        const timeEle = document.querySelector('#time')
+        const updateTime = () => {
+            const time = getTime();
+            timeEle.innerHTML = `
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;第 <span class="clock">${time.days}</span> 天 
+            <span class="clock">${time.hours}</span> 小时
+            <span class="clock">${time.minutes}</span> 分钟 
+            <span class="clock">${time.seconds}</span> 秒
+        `
+        }
+        updateTime()
+        setInterval(() => {
+            updateTime()
+        }, 1000);
+        // 将图形移植到body中作为背景图片
+        const imgUrl = canvas.toDataURL()
+        document.body.style.background = `url(${imgUrl})`
+        ctx.clearRect(0, 0, width, height);
+        // 樱花雨
+        (new SakuraRain(width, height)).render()
+    }
+</script>
+
+</html>
