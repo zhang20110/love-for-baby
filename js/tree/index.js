@@ -64,7 +64,7 @@ class Tree {
      */
     async horizontalMoveTree(targetX, speed = 2, x, y) {
         const ctx = window.ctx
-        const image = ctx.getImageData(x, y, 600, 700)
+        const image = ctx.getImageData(x, y, 650, 850)
         return new Promise((res, rej) => {
             let i = x
             const timeId = setInterval(() => {
