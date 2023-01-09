@@ -50,7 +50,12 @@
     }
 
     .cursorAnimate {
-        animation: blinkText 0.75s step-end infinite;
+        animation: blinkText 1s step-end infinite;
+    }
+
+    .hiddenText {
+        animation: fadeIn 7.5s linear;
+        opacity: 0;
     }
 
     @keyframes blinkText {
@@ -89,15 +94,16 @@
 
     .fadeIn {
         animation: fadeIn 1.8s ease;
+        opacity: 1;
     }
 
     @keyframes fadeIn {
         from {
-            opacity: 0;
+            opacity: 1;
         }
 
         to {
-            opacity: 1;
+            opacity: 0;
         }
     }
 
@@ -222,7 +228,7 @@
         // typewriter 动画
         await new Promise((res, rej) => {
             let text =
-                `我仍然记得我们初次相识时内心的澎湃，恨不得立刻见面的激动，我也记得你给我写的信，你说恨不得每天和我讲话，每天都陪你，我记得当时收到信的开心，现在重新读时更开心，我喜欢你，更喜欢你喜欢我.
+                `我仍然记得我们初次相识时内心的澎湃，恨不得立刻见面的激动，我也记得你给我写的信，你说恨不得每天和我讲话，每天都陪你，我记得当时收到信的开心，现在重新读时更开心，我喜欢你，我也喜欢你喜欢我.
     今天我们到100天啦。100天短不短，相见恨晚算不算晚. 我希望我们以后像一百这个数字一个, 凑个整,完完整整. 我希望岁岁年年月月，永永远远。
     我记得你以前问我，你是不是唯一，也许当我们结婚的时候你会是那唯一。现在你是我很重要很重要的人，前世修行一千年，得来今世的遇见。怎能不珍惜呢。地球上有那么多人，遇见你真的不容易，真的是幸运
     我还记得你问过我几次我喜欢你什么,我以前可以说很多，现在已经不会说什么了.因为你已经成为了我的本能，喜欢你已经不需要理由了，想到你就会笑，你生气我就会难受，这已经是我情感的本能了
@@ -242,7 +248,7 @@
                 if (j < 2 && col === 0 && row != 0) {
                     textBoxEle.innerHTML += '<br/>';
                     ++j;
-                    delay = 15; // 分段的时候停顿10次
+                    delay = 17; // 分段的时候停顿15次
                 } else {
                     if (row === 3 && col === redStart) {
                         textBoxEle.innerHTML += ' <strong id="strong"></strong>'
@@ -262,7 +268,7 @@
                     clearInterval(timeId);
                     res()
                 }
-            }, 40)
+            }, 27)
         })
         // 日期出现动画
         const classList = document.querySelector('#time-box').classList
@@ -288,6 +294,10 @@
         ctx.clearRect(0, 0, width, height);
         // 樱花雨
         (new SakuraRain(width, height)).render()
+        // 隐藏文字
+        document.querySelector('#time-box').classList.remove('fadeIn')
+        document.querySelector('.text_box').classList.add('hiddenText')
+        document.querySelector('.cursorAnimate').classList.add('hiddenText')
     }
 </script>
 
